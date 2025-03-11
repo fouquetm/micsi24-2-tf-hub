@@ -103,6 +103,7 @@ resource "azurerm_windows_virtual_machine" "srv01" {
   ]
 
   os_disk {
+    name                 = "vm-${local.resources_name_static_values}-01_OsDisk"
     caching              = "ReadWrite"
     storage_account_type = "StandardSSD_LRS"
   }
@@ -112,10 +113,6 @@ resource "azurerm_windows_virtual_machine" "srv01" {
     offer     = "WindowsServer"
     sku       = "2022-Datacenter"
     version   = "latest"
-  }
-
-  identity {
-    type = "SystemAssigned"
   }
 }
 
@@ -144,7 +141,7 @@ resource "azurerm_virtual_machine_run_command" "iis_default_page_title" {
   tags               = local.tags
 
   source {
-    script = "powershell -ExecutionPolicy Unrestricted -Command (Get-Content 'C:\\inetpub\\wwwroot\\iisstart.htm') | % {$_ -replace 'IIS Windows Server','MFOLABS App'} | Set-Content 'C:\\inetpub\\wwwroot\\iisstart.htm'"
+    script = "powershell -ExecutionPolicy Unrestricted -Command (Get-Content 'C:\\inetpub\\wwwroot\\iisstart.htm') | % {$_ -replace 'IIS Windows Server','MFOLABS'} | Set-Content 'C:\\inetpub\\wwwroot\\iisstart.htm'"
   }
 
   depends_on = [azurerm_virtual_machine_extension.iis_install]
@@ -247,7 +244,7 @@ resource "azurerm_application_gateway" "network" {
   sku {
     name     = "Standard_v2"
     tier     = "Standard_v2"
-    capacity = 2
+    capacity = 1
   }
 
   gateway_ip_configuration {

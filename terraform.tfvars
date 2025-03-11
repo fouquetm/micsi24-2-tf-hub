@@ -37,10 +37,10 @@ virtual_networks = {
   #     vnet_name           = "vnet-fc-05"
   #     resource_group_name = "rg-micsi242-student5"
   #   }
-  #   student6 = {
-  #     vnet_name           = "vnet-fc-06"
-  #     resource_group_name = "rg-micsi242-student6"
-  #   }
+  student6 = {
+    vnet_name           = "vnetstudent601"
+    resource_group_name = "rg-micsi242-student6"
+  }
   student7 = {
     vnet_name           = "vnetmda01"
     resource_group_name = "rg-micsi242-student7"
@@ -58,7 +58,7 @@ virtual_networks = {
   #     resource_group_name = "rg-micsi242-student10"
   #   }
   student11 = {
-    vnet_name           = "vnettel01"
+    vnet_name           = "vnetstudent1101"
     resource_group_name = "rg-micsi242-student11"
   }
 }
