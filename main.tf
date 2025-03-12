@@ -30,6 +30,7 @@ resource "azurerm_subnet" "vms_subnet" {
   resource_group_name  = data.azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.vms_subnet_address_prefixes
+  service_endpoints = [ "Microsoft.Storage"]
 }
 
 resource "azurerm_network_security_group" "nsg_vms" {
