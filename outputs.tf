@@ -12,3 +12,8 @@ output "dns_zone_name_servers" {
   value       = azurerm_dns_zone.mfolabs.name_servers
   description = "Nameservers for the DNS Zone"
 }
+
+output "blobfish_blob_url" {
+  value       = azurerm_storage_blob.blobfish.url
+  description = "Blobfish Blob URL"
+}

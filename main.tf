@@ -1,5 +1,6 @@
 locals {
-  resources_name_static_values = "${var.environment}-${var.location_short_name}"
+  resources_name_static_values         = "${var.environment}-${var.location_short_name}"
+  resources_name_without_special_chars = lower(replace(local.resources_name_static_values, "-", ""))
   tags = {
     environment = var.environment
     location    = var.location_short_name
@@ -413,4 +414,33 @@ resource "azurerm_dns_a_record" "hub" {
   resource_group_name = data.azurerm_resource_group.main.name
   ttl                 = 300
   records             = [azurerm_public_ip.pip_agw.ip_address]
+}
+
+#################
+# Storage Account
+#################
+
+resource "azurerm_storage_account" "main" {
+  name                          = "st${local.resources_name_without_special_chars}01"
+  resource_group_name           = data.azurerm_resource_group.main.name
+  location                      = data.azurerm_resource_group.main.location
+  account_tier                  = "Standard"
+  public_network_access_enabled = true
+  account_replication_type      = "LRS"
+  tags                          = local.tags
+}
+
+resource "azurerm_storage_container" "web" {
+  name                  = "web"
+  storage_account_name  = azurerm_storage_account.main.name
+  container_access_type = "container"
+}
+
+resource "azurerm_storage_blob" "blobfish" {
+  name                   = "blobfish.jpg"
+  storage_account_name   = azurerm_storage_account.main.name
+  storage_container_name = azurerm_storage_container.web.name
+  type                   = "Block"
+  content_type           = "image/jpeg"
+  source                 = "../blobfish.jpg"
 }
