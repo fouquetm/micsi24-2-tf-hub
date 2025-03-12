@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image depuis Azure Blob Storage</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 50px;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        padding: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image chargée depuis Azure Blob Storage</h1>
+    <img
+      id="azureImage"
+      src="https://stformfc01.blob.core.windows.net/web/blobfish.jpg"
+      alt="Image depuis Azure Blob Storage"
+    />
+  </body>
+</html>

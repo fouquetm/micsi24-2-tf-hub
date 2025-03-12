@@ -419,9 +419,14 @@ resource "azurerm_dns_a_record" "hub" {
 #################
 # Storage Account
 #################
+resource "random_string" "storage_name_suffix" {
+  length  = 4
+  special = false
+  upper   = false
+}
 
 resource "azurerm_storage_account" "main" {
-  name                          = "st${local.resources_name_without_special_chars}01"
+  name                          = "st${local.resources_name_without_special_chars}${random_string.storage_name_suffix.result}01"
   resource_group_name           = data.azurerm_resource_group.main.name
   location                      = data.azurerm_resource_group.main.location
   account_tier                  = "Standard"
@@ -442,5 +447,5 @@ resource "azurerm_storage_blob" "blobfish" {
   storage_container_name = azurerm_storage_container.web.name
   type                   = "Block"
   content_type           = "image/jpeg"
-  source                 = "../blobfish.jpg"
+  source                 = "web/blobfish.jpg"
 }
