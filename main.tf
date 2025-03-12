@@ -220,7 +220,6 @@ resource "azurerm_public_ip" "pip_agw" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   allocation_method   = "Static"
-  domain_name_label   = "agw-${local.resources_name_static_values}-01"
   tags                = local.tags
 }
 
@@ -351,11 +350,12 @@ resource "azurerm_role_assignment" "students_network_contributor_tm" {
   principal_id         = var.students_security_group_object_id
 }
 
-resource "azurerm_traffic_manager_azure_endpoint" "hub" {
-  name               = "hub-agw"
-  profile_id         = azurerm_traffic_manager_profile.main.id
-  target_resource_id = azurerm_public_ip.pip_agw.id
-  priority           = 1
+resource "azurerm_traffic_manager_external_endpoint" "mfolabs" {
+  name              = "hub-agw"
+  profile_id        = azurerm_traffic_manager_profile.main.id
+  target            = trimsuffix(azurerm_dns_a_record.hub.fqdn, ".")
+  priority          = 1
+  endpoint_location = data.azurerm_resource_group.main.location
 }
 
 #################
@@ -381,4 +381,36 @@ resource "azurerm_private_dns_zone_virtual_network_link" "hub" {
   virtual_network_id    = azurerm_virtual_network.main.id
   registration_enabled  = true
   tags                  = local.tags
+}
+
+#################
+# Azure DNS Zone
+#################
+
+resource "azurerm_dns_zone" "mfolabs" {
+  name                = "students.mfolabs.me"
+  resource_group_name = data.azurerm_resource_group.main.name
+  tags                = local.tags
+}
+
+resource "azurerm_role_assignment" "students_network_contributor_dns_zone" {
+  scope                = azurerm_dns_zone.mfolabs.id
+  role_definition_name = "Network Contributor"
+  principal_id         = var.students_security_group_object_id
+}
+
+resource "azurerm_dns_cname_record" "dns_cname_tm" {
+  name                = "global"
+  zone_name           = azurerm_dns_zone.mfolabs.name
+  resource_group_name = data.azurerm_resource_group.main.name
+  ttl                 = 300
+  record              = azurerm_traffic_manager_profile.main.fqdn
+}
+
+resource "azurerm_dns_a_record" "hub" {
+  name                = "hub"
+  zone_name           = azurerm_dns_zone.mfolabs.name
+  resource_group_name = data.azurerm_resource_group.main.name
+  ttl                 = 300
+  records             = [azurerm_public_ip.pip_agw.ip_address]
 }

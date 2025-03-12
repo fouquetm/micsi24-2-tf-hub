@@ -75,5 +75,5 @@ variable "virtual_networks" {
 
 variable "private_network_dns_zone_name" {
   type        = string
-  description = "Nom de la zone DNS privée."  
+  description = "Nom de la zone DNS privée."
 }
