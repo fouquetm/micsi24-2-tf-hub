@@ -30,7 +30,7 @@ resource "azurerm_subnet" "vms_subnet" {
   resource_group_name  = data.azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.vms_subnet_address_prefixes
-  service_endpoints = [ "Microsoft.Storage"]
+  service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_network_security_group" "nsg_vms" {
@@ -426,14 +426,23 @@ resource "random_string" "storage_name_suffix" {
   upper   = false
 }
 
+data "http" "myip" {
+  url = "https://ipv4.icanhazip.com"
+}
+
 resource "azurerm_storage_account" "main" {
   name                          = "st${local.resources_name_without_special_chars}${random_string.storage_name_suffix.result}01"
   resource_group_name           = data.azurerm_resource_group.main.name
   location                      = data.azurerm_resource_group.main.location
   account_tier                  = "Standard"
-  public_network_access_enabled = true
   account_replication_type      = "LRS"
-  tags                          = local.tags
+  public_network_access_enabled = false
+  network_rules {
+    ip_rules       = [chomp(data.http.myip.response_body)]
+    default_action = "Deny"
+    bypass         = ["AzureServices"]
+  }
+  tags = local.tags
 }
 
 resource "azurerm_storage_container" "web" {
@@ -449,4 +458,39 @@ resource "azurerm_storage_blob" "blobfish" {
   type                   = "Block"
   content_type           = "image/jpeg"
   source                 = "web/blobfish.jpg"
+}
+
+#################
+# Private Endpoints
+#################
+
+resource "azurerm_private_endpoint" "sa_blob" {
+  name                = "pe-${azurerm_storage_account.main.name}"
+  location            = data.azurerm_resource_group.main.location
+  resource_group_name = data.azurerm_resource_group.main.name
+  subnet_id           = azurerm_subnet.vms_subnet.id
+
+  private_service_connection {
+    name                           = "pe-${azurerm_storage_account.main.name}"
+    private_connection_resource_id = azurerm_storage_account.main.id
+    subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = [azurerm_private_dns_zone.sa_blob_pe.id]
+  }
+}
+
+resource "azurerm_private_dns_zone" "sa_blob_pe" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = data.azurerm_resource_group.main.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "example" {
+  name                  = "${azurerm_virtual_network.main.name}-link"
+  resource_group_name   = data.azurerm_resource_group.main.name
+  private_dns_zone_name = azurerm_private_dns_zone.sa_blob_pe.name
+  virtual_network_id    = azurerm_virtual_network.main.id
 }
