@@ -11,6 +11,7 @@ bastion_subnet_address_prefixes   = ["10.0.4.64/26"]
 vm_admin_username                 = "matthieu"
 vm_admin_password                 = "P@ssw0rd2025!"
 vm_size                           = "Standard_B2s_v2"
+private_network_dns_zone_name     = "mfolabs.internal"
 
 #################
 # Students VNet for Peering
@@ -37,10 +38,10 @@ virtual_networks = {
   #     vnet_name           = "vnet-fc-05"
   #     resource_group_name = "rg-micsi242-student5"
   #   }
-  student6 = {
-    vnet_name           = "vnetstudent601"
-    resource_group_name = "rg-micsi242-student6"
-  }
+  # student6 = {
+  #   vnet_name           = "vnetstudent601"
+  #   resource_group_name = "rg-micsi242-student6"
+  # }
   student7 = {
     vnet_name           = "vnetmda01"
     resource_group_name = "rg-micsi242-student7"
@@ -61,4 +62,8 @@ virtual_networks = {
     vnet_name           = "vnetstudent1101"
     resource_group_name = "rg-micsi242-student11"
   }
+  # student12 = {
+  #   vnet_name           = "vnetstudent1201"
+  #   resource_group_name = "rg-micsi242-student12"
+  # }
 }

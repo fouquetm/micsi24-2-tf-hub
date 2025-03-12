@@ -151,34 +151,34 @@ resource "azurerm_virtual_machine_run_command" "iis_default_page_title" {
 # Azure Firewall
 #################
 
-resource "azurerm_public_ip" "pip_fw" {
-  name                = "pip-fw-${local.resources_name_static_values}-01"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  allocation_method   = "Static"
-  tags                = local.tags
-}
+# resource "azurerm_public_ip" "pip_fw" {
+#   name                = "pip-fw-${local.resources_name_static_values}-01"
+#   resource_group_name = data.azurerm_resource_group.main.name
+#   location            = data.azurerm_resource_group.main.location
+#   allocation_method   = "Static"
+#   tags                = local.tags
+# }
 
-resource "azurerm_firewall" "main" {
-  name                = "fw-${local.resources_name_static_values}-01"
-  location            = data.azurerm_resource_group.main.location
-  resource_group_name = data.azurerm_resource_group.main.name
-  sku_name            = "AZFW_VNet"
-  sku_tier            = "Standard"
-  tags                = local.tags
+# resource "azurerm_firewall" "main" {
+#   name                = "fw-${local.resources_name_static_values}-01"
+#   location            = data.azurerm_resource_group.main.location
+#   resource_group_name = data.azurerm_resource_group.main.name
+#   sku_name            = "AZFW_VNet"
+#   sku_tier            = "Standard"
+#   tags                = local.tags
 
-  ip_configuration {
-    name                 = "configuration"
-    subnet_id            = azurerm_subnet.fw_subnet.id
-    public_ip_address_id = azurerm_public_ip.pip_fw.id
-  }
-}
+#   ip_configuration {
+#     name                 = "configuration"
+#     subnet_id            = azurerm_subnet.fw_subnet.id
+#     public_ip_address_id = azurerm_public_ip.pip_fw.id
+#   }
+# }
 
-resource "azurerm_role_assignment" "students_contributor_fw" {
-  scope                = azurerm_firewall.main.id
-  role_definition_name = "Contributor"
-  principal_id         = var.students_security_group_object_id
-}
+# resource "azurerm_role_assignment" "students_contributor_fw" {
+#   scope                = azurerm_firewall.main.id
+#   role_definition_name = "Contributor"
+#   principal_id         = var.students_security_group_object_id
+# }
 
 #################
 # Bastion
@@ -345,9 +345,9 @@ resource "azurerm_traffic_manager_profile" "main" {
   }
 }
 
-resource "azurerm_role_assignment" "students_contributor_tm" {
+resource "azurerm_role_assignment" "students_network_contributor_tm" {
   scope                = azurerm_traffic_manager_profile.main.id
-  role_definition_name = "Contributor"
+  role_definition_name = "Network Contributor"
   principal_id         = var.students_security_group_object_id
 }
 
@@ -356,4 +356,29 @@ resource "azurerm_traffic_manager_azure_endpoint" "hub" {
   profile_id         = azurerm_traffic_manager_profile.main.id
   target_resource_id = azurerm_public_ip.pip_agw.id
   priority           = 1
+}
+
+#################
+# Azure Private DNS Zone
+#################
+
+resource "azurerm_private_dns_zone" "main" {
+  name                = var.private_network_dns_zone_name
+  resource_group_name = data.azurerm_resource_group.main.name
+  tags                = local.tags
+}
+
+resource "azurerm_role_assignment" "students_network_contributor_private_dns_zone" {
+  scope                = azurerm_private_dns_zone.main.id
+  role_definition_name = "Network Contributor"
+  principal_id         = var.students_security_group_object_id
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "hub" {
+  name                  = "hub-vnet-link"
+  resource_group_name   = data.azurerm_resource_group.main.name
+  private_dns_zone_name = azurerm_private_dns_zone.main.name
+  virtual_network_id    = azurerm_virtual_network.main.id
+  registration_enabled  = true
+  tags                  = local.tags
 }
